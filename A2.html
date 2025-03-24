@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Gallery</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --accent-color: #f06292;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --shadow: 0 10px 20px rgba(0,0,0,0.1);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: var(--dark-color);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+        }
+        
+        .title {
+            font-size: 3.5em;
+            font-weight: 800;
+            color: var(--dark-color);
+            margin-bottom: 15px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .title::after {
+            content: '';
+            position: absolute;
+            width: 60%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            bottom: -10px;
+            left: 20%;
+            border-radius: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2em;
+            color: #7f8c8d;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 50px;
+        }
+        
+        .gallery-item {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            height: 250px;
+            transform: translateY(0);
+            transition: var(--transition);
+        }
+        
+        .gallery-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+        
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition);
+        }
+        
+        .gallery-item:hover img {
+            transform: scale(1.1);
+        }
+        
+        .overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+            padding: 20px;
+            color: white;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: var(--transition);
+        }
+        
+        .gallery-item:hover .overlay {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .caption {
+            font-weight: 600;
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+        
+        .description {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        .view-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: white;
+            color: var(--dark-color);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2em;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        
+        .gallery-item:hover .view-btn {
+            transform: translate(-50%, -50%) scale(1);
+        }
+        
+        .view-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        
+        .modal.active {
+            opacity: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content-wrapper {
+            position: relative;
+            width: 80%;
+            max-width: 1000px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .modal-content {
+            max-width: 100%;
+            max-height: 80vh;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            object-fit: contain;
+            transform: scale(0.9);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .modal.active .modal-content {
+            transform: scale(1);
+        }
+        
+        .close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+            transition: color 0.3s;
+            z-index: 1001;
+        }
+        
+        .close:hover {
+            color: var(--accent-color);
+        }
+        
+        .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: var(--transition);
+            z-index: 1001;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.5);
+        }
+        
+        .prev { left: 20px; }
+        .next { right: 20px; }
+        
+        .image-counter {
+            color: white;
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        @media (max-width: 768px) {
+            .gallery {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 15px;
+            }
+            
+            .title {
+                font-size: 2.5em;
+            }
+            
+            .gallery-item {
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="title">Image Gallery</h1>
+            <p class="subtitle">Explore our collection of beautiful images from around the world</p>
+        </header>
+        
+        <div class="gallery">
+            <div class="gallery-item">
+                <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c" alt="Mountain View">
+                <div class="overlay">
+                    <div class="caption">Mountain View</div>
+                    <div class="description">Breathtaking mountain landscape at sunset</div>
+                </div>
+                <div class="view-btn"><i class="fas fa-search-plus"></i></div>
+            </div>
+            
+            <div class="gallery-item">
+                <img src="https://images.unsplash.com/photo-1494438639946-1ebd1d20bf85" alt="City Lights">
+                <div class="overlay">
+                    <div class="caption">City Lights</div>
+                    <div class="description">Vibrant urban nightscape with dazzling lights</div>
+                </div>
+                <div class="view-btn"><i class="fas fa-search-plus"></i></div>
+            </div>
+            
+            <div class="gallery-item">
+                <img src="https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0" alt="Ocean Waves">
+                <div class="overlay">
+                    <div class="caption">Ocean Waves</div>
+                    <div class="description">Peaceful ocean waves during golden hour</div>
+                </div>
+                <div class="view-btn"><i class="fas fa-search-plus"></i></div>
+            </div>
+            
+            <div class="gallery-item">
+                <img src="https://images.unsplash.com/photo-1513836279014-a89f7a76ae86" alt="Forest Trail">
+                <div class="overlay">
+                    <div class="caption">Forest Trail</div>
+                    <div class="description">Mystical forest path surrounded by tall trees</div>
+                </div>
+                <div class="view-btn"><i class="fas fa-search-plus"></i></div>
+            </div>
+            
+            <div class="gallery-item">
+                <img src="https://images.unsplash.com/photo-1505761671935-60b3a7427bad" alt="Desert Sunset">
+                <div class="overlay">
+                    <div class="caption">Desert Sunset</div>
+                    <div class="description">Dramatic sunset over sand dunes</div>
+                </div>
+                <div class="view-btn"><i class="fas fa-search-plus"></i></div>
+            </div>
+            
+            <div class="gallery-item">
+                <img src="https://images.unsplash.com/photo-1501785888041-af3ef285b470" alt="Alpine Lake">
+                <div class="overlay">
+                    <div class="caption">Alpine Lake</div>
+                    <div class="description">Crystal clear mountain lake reflecting the sky</div>
+                </div>
+                <div class="view-btn"><i class="fas fa-search-plus"></i></div>
+            </div>
+        </div>
+        
+        <footer class="footer">
+            <p>© 2025 Stunning Gallery. All images are from Unsplash.</p>
+        </footer>
+    </div>
+    
+    <div class="modal" id="imageModal">
+        <div class="modal-content-wrapper">
+            <span class="close"><i class="fas fa-times"></i></span>
+            <img class="modal-content" id="modalImage">
+            <div class="image-counter"><span id="currentImageNum">1</span> / <span id="totalImages">6</span></div>
+        </div>
+        <div class="nav-btn prev" onclick="changeImage(-1)"><i class="fas fa-chevron-left"></i></div>
+        <div class="nav-btn next" onclick="changeImage(1)"><i class="fas fa-chevron-right"></i></div>
+    </div>
+
+    <script>
+        const galleryItems = document.querySelectorAll('.gallery-item');
+        const modal = document.getElementById('imageModal');
+        const modalImage = document.getElementById('modalImage');
+        const closeBtn = document.querySelector('.close');
+        const currentImageNum = document.getElementById('currentImageNum');
+        const totalImages = document.getElementById('totalImages');
+        let currentIndex = 0;
+        
+        // Set total images count
+        totalImages.textContent = galleryItems.length;
+        
+        galleryItems.forEach((item, index) => {
+            const viewBtn = item.querySelector('.view-btn');
+            const img = item.querySelector('img');
+            
+            viewBtn.addEventListener('click', () => {
+                openModal(img.src, index);
+            });
+            
+            img.addEventListener('click', () => {
+                openModal(img.src, index);
+            });
+        });
+        
+        function openModal(src, index) {
+            modal.classList.add('active');
+            modalImage.src = src;
+            currentIndex = index;
+            currentImageNum.textContent = currentIndex + 1;
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeModal() {
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 400);
+            document.body.style.overflow = 'auto';
+        }
+        
+        closeBtn.addEventListener('click', closeModal);
+        
+        function changeImage(direction) {
+            currentIndex += direction;
+            if (currentIndex < 0) currentIndex = galleryItems.length - 1;
+            if (currentIndex >= galleryItems.length) currentIndex = 0;
+            
+            const newSrc = galleryItems[currentIndex].querySelector('img').src;
+            modalImage.src = newSrc;
+            currentImageNum.textContent = currentIndex + 1;
+        }
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (modal.classList.contains('active')) {
+                if (e.key === 'ArrowLeft') changeImage(-1);
+                if (e.key === 'ArrowRight') changeImage(1);
+                if (e.key === 'Escape') closeModal();
+            }
+        });
+        
+        // Add animation to the title on page load
+        window.addEventListener('load', () => {
+            document.querySelector('.title').style.animation = 'pulse 2s infinite';
+            setTimeout(() => {
+                document.querySelector('.title').style.animation = '';
+            }, 6000);
+        });
+    </script>
+</body>
+</html>
